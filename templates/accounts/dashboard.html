@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIVEMIND - Dashboard</title>
+</head>
+<body>
+    <h1>Welcome to HIVEMIND</h1>
+    <h2>Dashboard</h2>
+
+    <p>Welcome, {{ request.user.username }}! 👋</p>
+
+    <nav>
+        <ul>
+            <li><a href="#">Attendance</a></li>
+            <li><a href="#">Assignments</a></li>
+            <li><a href="#">Study Materials</a></li>
+            <li><a href="#">Notice Board</a></li>
+            <li><a href="#">Profile</a></li>
+        </ul>
+    </nav>
+
+    <a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>
