@@ -34,3 +34,6 @@ def logout_view(request):
 
 def dashboard_view(request):
     return render(request, 'accounts/dashboard.html')
+
+def cover_view(request):
+    return render(request, 'accounts/cover.html')
