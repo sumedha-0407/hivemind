@@ -37,3 +37,6 @@ def dashboard_view(request):
 
 def cover_view(request):
     return render(request, 'accounts/cover.html')
+
+def leave_view(request):
+    return render(request, 'accounts/leave.html')

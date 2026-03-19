@@ -105,7 +105,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
+```
+
+Save with **Ctrl+S** and restart the server:
+```
+python manage.py runserver
 
 USE_I18N = True
 

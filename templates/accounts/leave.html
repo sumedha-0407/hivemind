@@ -1,0 +1,548 @@
+{% extends 'base.html' %}
+
+{% block title %}HIVEMIND - Leave Portal{% endblock %}
+
+{% block background %}{% endblock background %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700&display=swap');
+  * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(135deg, hsla(240, 60%, 25%, 1) 0%, hsla(220, 78%, 18%, 1) 50%, hsla(200, 70%, 20%, 1) 100%);
+    min-height: 100vh;
+  }
+
+  .top-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    background: rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .nav-logo { font-family: 'Righteous', cursive; font-size: 20px; color: white; }
+  .nav-logo span { font-size: 11px; color: rgba(255,255,255,0.4); display: block; font-family: 'Nunito', sans-serif; font-weight: 400; }
+  .nav-back {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: rgba(255,255,255,0.5);
+    text-decoration: none; transition: all 0.2s;
+  }
+  .nav-back:hover { color: white; text-decoration: none; }
+
+  .portal-wrap {
+    display: flex; gap: 20px;
+    padding: 24px 32px; min-height: calc(100vh - 65px);
+  }
+
+  /* LEFT FORM */
+  .form-section {
+    flex: 1.1;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px; padding: 28px 32px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .section-title { font-size: 16px; font-weight: 700; color: white; margin: 0; }
+  .section-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin: 3px 0 0; }
+
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .info-item {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 10px 14px;
+  }
+  .info-label { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+  .info-value { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); }
+
+  .att-banner {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(104,137,238,0.1);
+    border: 1px solid rgba(104,137,238,0.25);
+    border-radius: 12px; padding: 12px 16px;
+  }
+  .att-banner-left { display: flex; flex-direction: column; gap: 2px; }
+  .att-banner-label { font-size: 10px; color: rgba(155,175,217,0.7); letter-spacing: 1px; text-transform: uppercase; }
+  .att-banner-val { font-size: 22px; font-weight: 700; color: #9bafd9; }
+  .att-banner-note { font-size: 11px; color: rgba(255,255,255,0.4); }
+  .att-projected { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .att-projected-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; text-transform: uppercase; }
+  .att-projected-val { font-size: 22px; font-weight: 700; color: rgba(255,255,255,0.6); }
+  .att-projected-val.danger { color: #ffaaaa; }
+  .att-projected-val.safe { color: #9bafd9; }
+
+  .divider { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
+
+  .form-title { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; letter-spacing: 0.5px; }
+  .form-input {
+    padding: 10px 14px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: white; font-size: 13px; font-family: 'Nunito', sans-serif;
+    outline: none; transition: all 0.2s;
+  }
+  .form-input:focus { border-color: rgba(104,137,238,0.5); background: rgba(255,255,255,0.09); }
+  .form-input::placeholder { color: rgba(255,255,255,0.25); }
+  textarea.form-input { resize: none; height: 90px; line-height: 1.6; }
+  input[type="date"].form-input::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+
+  .warning-box {
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 12px; color: #ffaaaa; line-height: 1.5;
+    background: rgba(220,80,80,0.1);
+    border: 1px solid rgba(220,80,80,0.2);
+    display: none;
+  }
+  .warning-box.show { display: block; }
+  .duplicate-box {
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 12px; color: #ffd090; line-height: 1.5;
+    background: rgba(240,160,64,0.1);
+    border: 1px solid rgba(240,160,64,0.2);
+    display: none;
+  }
+  .duplicate-box.show { display: block; }
+
+  .submit-btn {
+    width: 100%; padding: 13px; border-radius: 12px;
+    border: 1px solid rgba(104,137,238,0.4); cursor: pointer;
+    background: linear-gradient(135deg, rgba(104,137,238,0.8), rgba(80,110,210,0.9));
+    color: white; font-size: 14px; font-weight: 700;
+    font-family: 'Nunito', sans-serif; letter-spacing: 0.5px;
+    transition: all 0.25s;
+  }
+  .submit-btn:hover { background: linear-gradient(135deg, rgba(104,137,238,1), rgba(80,110,210,1)); transform: translateY(-1px); }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* RIGHT STATUS */
+  .status-section {
+    flex: 0.9;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  .status-header { display: flex; align-items: center; justify-content: space-between; }
+  .status-count {
+    font-size: 11px; color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 3px 10px;
+  }
+
+  .leave-list {
+    display: flex; flex-direction: column; gap: 10px;
+    overflow-y: auto; max-height: calc(100vh - 200px); padding-right: 4px;
+  }
+  .leave-list::-webkit-scrollbar { width: 3px; }
+  .leave-list::-webkit-scrollbar-thumb { background: rgba(104,137,238,0.3); border-radius: 2px; }
+
+  .leave-card {
+    border-radius: 12px; padding: 14px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column; gap: 8px;
+    transition: all 0.2s;
+  }
+  .leave-card:hover { background: rgba(255,255,255,0.08); }
+  .leave-card.pending { border-left: 3px solid rgba(255,200,80,0.6); }
+  .leave-card.approved { border-left: 3px solid rgba(80,200,120,0.6); }
+  .leave-card.rejected { border-left: 3px solid rgba(220,80,80,0.6); }
+
+  .leave-card-top { display: flex; align-items: center; justify-content: space-between; }
+  .leave-dates { font-size: 13px; font-weight: 700; color: white; }
+  .leave-days { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+  .status-badge {
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  }
+  .status-badge.pending { background: rgba(255,200,80,0.15); color: #ffc850; border: 1px solid rgba(255,200,80,0.3); }
+  .status-badge.approved { background: rgba(80,200,120,0.15); color: #50c878; border: 1px solid rgba(80,200,120,0.3); }
+  .status-badge.rejected { background: rgba(220,80,80,0.15); color: #ff6b6b; border: 1px solid rgba(220,80,80,0.3); }
+
+  .leave-reason { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+  .leave-comment {
+    font-size: 11px; padding: 7px 10px;
+    border-radius: 8px; font-style: italic;
+    background: rgba(255,255,255,0.04);
+    border-left: 2px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.4);
+  }
+  .leave-comment.approved-comment { border-left-color: rgba(80,200,120,0.4); color: rgba(144,224,176,0.7); }
+  .leave-comment.rejected-comment { border-left-color: rgba(220,80,80,0.4); color: rgba(255,170,170,0.7); }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 12px; padding: 40px 20px;
+    color: rgba(255,255,255,0.25); text-align: center;
+  }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+</style>
+
+<!-- TOP NAV -->
+<div class="top-nav">
+  <div class="nav-logo">
+    HIVEMIND
+    <span>Leave Portal</span>
+  </div>
+  <a href="{% url 'dashboard' %}" class="nav-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back to Dashboard
+  </a>
+</div>
+
+<div class="portal-wrap">
+
+  <!-- LEFT FORM -->
+  <div class="form-section">
+    <div>
+      <div class="section-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="white" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="white" stroke-width="1.5"/><path d="M7 14 L10 17 L17 13" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div>
+          <div class="section-title">Leave Application</div>
+          <div class="section-sub">Fill in the details below to submit your leave request</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENT INFO -->
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-label">Name</div>
+        <div class="info-value" id="info-name">—</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Register No</div>
+        <div class="info-value" id="info-regno">—</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Department</div>
+        <div class="info-value">B.Tech AI&DS</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Year</div>
+        <div class="info-value">II</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Semester</div>
+        <div class="info-value">IV</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Section</div>
+        <div class="info-value">A</div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE BANNER -->
+    <div class="att-banner">
+      <div class="att-banner-left">
+        <div class="att-banner-label">Current Overall Attendance</div>
+        <div class="att-banner-val">82%</div>
+        <div class="att-banner-note">Above required 75% threshold</div>
+      </div>
+      <div class="att-projected">
+        <div class="att-projected-label">Projected After Leave</div>
+        <div class="att-projected-val safe" id="projected-val">—</div>
+        <div class="att-banner-note" id="projected-note">Select dates to calculate</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- FORM FIELDS -->
+    <div>
+      <div class="form-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="white" stroke-width="1.5"/><line x1="8" y1="1" x2="8" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="1" x2="16" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Leave Details
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">From Date</label>
+          <input type="date" class="form-input" id="from-date" onchange="calculateProjected()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">To Date</label>
+          <input type="date" class="form-input" id="to-date" onchange="calculateProjected()"/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Reason for Leave</label>
+          <textarea class="form-input" id="reason" placeholder="Please describe the reason for your leave request..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning-box" id="warning-box">
+      Skipping these classes would bring your attendance to <strong id="warn-pct"></strong> — below the required 75%. Please reconsider or speak with your faculty before applying.
+    </div>
+    <div class="duplicate-box" id="duplicate-box">
+      You already have a leave request for overlapping dates. Please check your existing requests before submitting a new one.
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitLeave()">Submit Leave Request</button>
+  </div>
+
+  <!-- RIGHT STATUS -->
+  <div class="status-section">
+    <div class="status-header">
+      <div>
+        <div class="section-title">My Leave Requests</div>
+        <div class="section-sub" style="margin-top:3px;">Track your submitted requests</div>
+      </div>
+      <div class="status-count" id="leave-count">0 requests</div>
+    </div>
+    <div class="leave-list" id="leave-list"></div>
+  </div>
+
+</div>
+
+<script>
+  const students = [
+    { name: 'AFNAN HASSAIN M', regno: '511924243001' },
+    { name: 'AFNAN TAHIB K', regno: '511924243002' },
+    { name: 'ALI IFTIQUAR K A', regno: '511924243003' },
+    { name: 'BHUVANESHWARI S', regno: '511924243005' },
+    { name: 'DHANUSH T', regno: '511924243007' },
+    { name: 'DHARSHINI V', regno: '511924243008' },
+    { name: 'DILLIGANESH K', regno: '511924243009' },
+    { name: 'GANESH R', regno: '511924243010' },
+    { name: 'GEETHA BAI M', regno: '511924243011' },
+    { name: 'HAFEEZUR RAHMAN H', regno: '511924243013' },
+    { name: 'HARINI S', regno: '511924243014' },
+    { name: 'HARIS HASSAAN T', regno: '511924243015' },
+    { name: 'ISAAC K', regno: '511924243017' },
+    { name: 'JEEVANANTHAM M', regno: '511924243019' },
+    { name: 'JESWANTH G V', regno: '511924243020' },
+    { name: 'KOUSHIK R', regno: '511924243021' },
+    { name: 'KRISHNAKUMAR N', regno: '511924243022' },
+    { name: 'LATHIKA A', regno: '511924243023' },
+    { name: 'MADHUBALA S', regno: '511924243024' },
+    { name: 'MAHALAKSHMI S', regno: '511924243025' },
+    { name: 'MD MUEIZE K', regno: '511924243026' },
+    { name: 'MOHAMMED AZHAN P', regno: '511924243027' },
+    { name: 'MOHAMMED KABIR K I', regno: '511924243028' },
+    { name: 'MONISHA U', regno: '511924243030' },
+    { name: 'MOULYA U', regno: '511924243031' },
+    { name: 'MURALIDHARAN S', regno: '511924243032' },
+    { name: 'NAVEEN V', regno: '511924243033' },
+    { name: 'NISHA S', regno: '511924243034' },
+    { name: 'OVIYAN M G', regno: '511924243035' },
+    { name: 'PRADHAP S', regno: '511924243036' },
+    { name: 'PRITHIVIRAJ R', regno: '511924243037' },
+    { name: 'RAJAPRIVAN R', regno: '511924243038' },
+    { name: 'REVATHI A', regno: '511924243040' },
+    { name: 'SABARINATHAN V', regno: '511924243041' },
+    { name: 'SACHIN K', regno: '511924243042' },
+    { name: 'SANTHOSH M', regno: '511924243043' },
+    { name: 'SARUMATHI A', regno: '511924243044' },
+    { name: 'SRIDHAR J', regno: '511924243045' },
+    { name: 'SRINATH A', regno: '511924243047' },
+    { name: 'SUMEDHA M', regno: '511924243049' },
+    { name: 'SURYA S', regno: '511924243050' },
+    { name: 'THIRUMALAIVASAN A', regno: '511924243051' },
+    { name: 'THIRUPATHI V', regno: '511924243052' },
+    { name: 'VAISHNAVI J', regno: '511924243053' },
+    { name: 'VANALAKSHMI U', regno: '511924243054' },
+    { name: 'VIDHYA V', regno: '511924243056' },
+    { name: 'VIJAYALAKSHMI L', regno: '511924243058' },
+    { name: 'VINOTHINI S', regno: '511924243059' },
+    { name: 'YUVARAJ G', regno: '511924243060' },
+    { name: 'DHANUSH S', regno: '511924243301' },
+    { name: 'KALAIVANI S', regno: '511924243302' },
+    { name: 'VISHVA K', regno: '511924243303' },
+    { name: 'DHINAKARAN R', regno: '511924243701' },
+  ];
+
+  const loggedInUser = "{{ request.user.username }}".toUpperCase();
+  const student = students.find(s =>
+    s.name.toUpperCase().includes(loggedInUser) ||
+    loggedInUser.includes(s.name.split(' ')[0])
+  ) || { name: loggedInUser, regno: 'N/A' };
+
+  document.getElementById('info-name').textContent = student.name;
+  document.getElementById('info-regno').textContent = student.regno;
+
+  // Attendance variables
+  const totalClasses = 90;
+  const currentAtt = 82;
+  const attendedClasses = Math.round((currentAtt / 100) * totalClasses);
+  const classesPerDay = 6;
+
+  let leaveRequests = [
+    {
+      from: '2026-02-10', to: '2026-02-11',
+      reason: 'Family function — attending sister\'s engagement ceremony.',
+      status: 'approved',
+      comment: 'Approved. Please ensure assignments are submitted on time.'
+    },
+    {
+      from: '2026-03-05', to: '2026-03-05',
+      reason: 'Medical appointment — doctor visit for routine checkup.',
+      status: 'rejected',
+      comment: 'Rejected. Internal assessment scheduled on this date. Please reschedule your appointment.'
+    },
+    {
+      from: '2026-03-18', to: '2026-03-19',
+      reason: 'Personal emergency — need to travel to hometown.',
+      status: 'pending',
+      comment: ''
+    },
+  ];
+
+  function getWorkingDays(from, to) {
+    let count = 0;
+    const start = new Date(from);
+    const end = new Date(to);
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const day = d.getDay();
+      if (day !== 0 && day !== 6) count++;
+    }
+    return count;
+  }
+
+  function calculateProjected() {
+    const from = document.getElementById('from-date').value;
+    const to = document.getElementById('to-date').value;
+    const projectedEl = document.getElementById('projected-val');
+    const projectedNote = document.getElementById('projected-note');
+    const warningBox = document.getElementById('warning-box');
+    const submitBtn = document.getElementById('submit-btn');
+    const warnPct = document.getElementById('warn-pct');
+    const dupBox = document.getElementById('duplicate-box');
+
+    if (!from || !to) {
+      projectedEl.textContent = '—';
+      projectedNote.textContent = 'Select dates to calculate';
+      warningBox.classList.remove('show');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    if (from > to) {
+      projectedEl.textContent = '—';
+      projectedNote.textContent = 'Invalid date range';
+      warningBox.classList.remove('show');
+      return;
+    }
+
+    // Duplicate check
+    const isDuplicate = leaveRequests.some(r => {
+      if (r.status === 'rejected') return false;
+      return !(to < r.from || from > r.to);
+    });
+
+    if (isDuplicate) {
+      dupBox.classList.add('show');
+      submitBtn.disabled = true;
+      projectedEl.textContent = '—';
+      projectedNote.textContent = 'Duplicate request!';
+      warningBox.classList.remove('show');
+      return;
+    } else {
+      dupBox.classList.remove('show');
+    }
+
+    const leaveDays = getWorkingDays(from, to);
+    const missedClasses = leaveDays * classesPerDay;
+    const newTotal = totalClasses + missedClasses;
+    const projectedPct = Math.round((attendedClasses / newTotal) * 100);
+
+    projectedEl.textContent = projectedPct + '%';
+
+    if (projectedPct < 75) {
+      projectedEl.className = 'att-projected-val danger';
+      projectedNote.textContent = 'Below 75% threshold!';
+      warningBox.classList.add('show');
+      warnPct.textContent = projectedPct + '%';
+      submitBtn.disabled = true;
+    } else {
+      projectedEl.className = 'att-projected-val safe';
+      projectedNote.textContent = 'Safe to apply';
+      warningBox.classList.remove('show');
+      submitBtn.disabled = false;
+    }
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function renderLeaves() {
+    const list = document.getElementById('leave-list');
+    const count = document.getElementById('leave-count');
+    count.textContent = leaveRequests.length + ' request' + (leaveRequests.length !== 1 ? 's' : '');
+
+    if (leaveRequests.length === 0) {
+      list.innerHTML = `<div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="white" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="white" stroke-width="1.5"/></svg>
+        <p>No leave requests yet.<br>Submit your first request using the form.</p>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = leaveRequests.map(r => {
+      const days = getWorkingDays(r.from, r.to);
+      const commentClass = r.status === 'approved' ? 'approved-comment' : r.status === 'rejected' ? 'rejected-comment' : '';
+      return `
+        <div class="leave-card ${r.status}">
+          <div class="leave-card-top">
+            <div class="leave-dates">${formatDate(r.from)} → ${formatDate(r.to)}</div>
+            <div class="status-badge ${r.status}">${r.status.toUpperCase()}</div>
+          </div>
+          <div class="leave-days">${days} working day${days !== 1 ? 's' : ''}</div>
+          <div class="leave-reason">${r.reason}</div>
+          ${r.comment ? `<div class="leave-comment ${commentClass}">Faculty: "${r.comment}"</div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function submitLeave() {
+    const from = document.getElementById('from-date').value;
+    const to = document.getElementById('to-date').value;
+    const reason = document.getElementById('reason').value.trim();
+
+    if (!from || !to || !reason) {
+      alert('Please fill in all fields before submitting.');
+      return;
+    }
+    if (from > to) {
+      alert('From date cannot be after To date.');
+      return;
+    }
+
+    leaveRequests.unshift({ from, to, reason, status: 'pending', comment: '' });
+    renderLeaves();
+
+    document.getElementById('from-date').value = '';
+    document.getElementById('to-date').value = '';
+    document.getElementById('reason').value = '';
+    document.getElementById('projected-val').textContent = '—';
+    document.getElementById('projected-note').textContent = 'Select dates to calculate';
+    document.getElementById('projected-val').className = 'att-projected-val safe';
+    document.getElementById('warning-box').classList.remove('show');
+    document.getElementById('duplicate-box').classList.remove('show');
+    document.getElementById('submit-btn').disabled = false;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('from-date').min = today;
+  document.getElementById('to-date').min = today;
+
+  renderLeaves();
+</script>
+
+{% endblock %}
+
+{% block extra_js %}{% endblock %}
