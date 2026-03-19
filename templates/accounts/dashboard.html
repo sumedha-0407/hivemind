@@ -1,26 +1,461 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIVEMIND - Dashboard</title>
-</head>
-<body>
-    <h1>Welcome to HIVEMIND</h1>
-    <h2>Dashboard</h2>
+{% extends 'base.html' %}
 
-    <p>Welcome, {{ request.user.username }}! 👋</p>
+{% block title %}HIVEMIND - Dashboard{% endblock %}
 
-    <nav>
-        <ul>
-            <li><a href="#">Attendance</a></li>
-            <li><a href="#">Assignments</a></li>
-            <li><a href="#">Study Materials</a></li>
-            <li><a href="#">Notice Board</a></li>
-            <li><a href="#">Profile</a></li>
-        </ul>
-    </nav>
+{% block background %}{% endblock background %}
 
-    <a href="{% url 'logout' %}">Logout</a>
-</body>
-</html>
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700&display=swap');
+  * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+  body {
+    background: linear-gradient(90deg, hsla(221, 55%, 45%, 1) 0%, hsla(220, 78%, 18%, 1) 100%);
+    min-height: 100vh;
+  }
+  .dash-wrap { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column;
+    padding: 24px 0; position: fixed;
+    height: 100vh; z-index: 10;
+  }
+  .sidebar-logo {
+    font-family: 'Righteous', cursive;
+    font-size: 20px; color: white;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 16px;
+  }
+  .sidebar-logo span {
+    font-size: 10px; color: rgba(255,255,255,0.4);
+    display: block; font-family: 'Nunito', sans-serif;
+    font-weight: 400; letter-spacing: 1px; margin-top: 2px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; font-size: 13px;
+    color: rgba(255,255,255,0.55); cursor: pointer;
+    transition: all 0.2s; text-decoration: none;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: white; text-decoration: none; }
+  .nav-item.active { background: rgba(104,137,238,0.15); color: #9bafd9; border-left-color: #6889ee; }
+  .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+  .sidebar-footer {
+    margin-top: auto; padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .logout-btn {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: rgba(255,255,255,0.4);
+    text-decoration: none; transition: all 0.2s;
+  }
+  .logout-btn:hover { color: #ff6b6b; text-decoration: none; }
+
+  .main-area { margin-left: 220px; flex: 1; padding: 28px 32px; min-height: 100vh; }
+
+  /* TOP ROW */
+  .top-row { display: flex; gap: 16px; margin-bottom: 20px; align-items: stretch; }
+
+  .greeting-card {
+    flex: 1.2;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px; padding: 22px 28px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .greeting-card h2 { font-size: 28px; font-weight: 700; color: white; margin: 0; }
+  .greeting-card .sub { font-size: 13px; color: rgba(255,255,255,0.5); margin: 0; }
+  .greeting-date {
+    font-size: 11px; color: rgba(255,255,255,0.3);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .greeting-quote {
+    font-size: 12px; color: rgba(155,175,217,0.65);
+    font-style: italic; border-left: 2px solid rgba(104,137,238,0.35);
+    padding-left: 10px;
+  }
+
+  /* SUBJECT ATTENDANCE GRID */
+  .subatt-card {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px; padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .subatt-title {
+    font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5);
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .subatt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .subatt-square {
+    border-radius: 10px; padding: 10px 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 5px;
+    min-height: 80px; position: relative;
+    transition: all 0.2s;
+  }
+  .subatt-square.danger { background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.25); }
+  .subatt-square.caution { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); }
+  .subatt-square.safe { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+  .subatt-code { font-size: 13px; font-weight: 700; color: white; }
+  .subatt-pct-val { font-size: 16px; font-weight: 700; }
+  .subatt-square.danger .subatt-pct-val { color: rgba(255,255,255,0.95); }
+  .subatt-square.caution .subatt-pct-val { color: rgba(255,255,255,0.75); }
+  .subatt-square.safe .subatt-pct-val { color: rgba(255,255,255,0.55); }
+  .subatt-bar-bg {
+    width: 100%; height: 3px; border-radius: 3px;
+    background: rgba(255,255,255,0.08); overflow: hidden;
+  }
+  .subatt-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+  .subatt-square.danger .subatt-bar-fill { background: rgba(255,255,255,0.7); }
+  .subatt-square.caution .subatt-bar-fill { background: rgba(255,255,255,0.45); }
+  .subatt-square.safe .subatt-bar-fill { background: rgba(255,255,255,0.25); }
+  .subatt-warn-dot {
+    position: absolute; top: 6px; right: 6px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.8);
+    animation: blink 1.2s ease-in-out infinite;
+  }
+
+  /* OVERALL ATTENDANCE */
+  .att-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px; padding: 20px 24px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 12px; min-width: 155px;
+  }
+  .att-label { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 2px; text-transform: uppercase; }
+  .att-circle {
+    width: 90px; height: 90px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .att-inner {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: rgba(10,20,60,0.85);
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .att-pct { font-size: 16px; font-weight: 700; color: #9bafd9; }
+  .att-status { font-size: 9px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
+  .att-note { font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; max-width: 120px; line-height: 1.4; }
+
+  /* STATS */
+  .stats-row { display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-card {
+    flex: 1; min-width: 130px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 16px 18px; transition: all 0.2s;
+  }
+  .stat-card:hover { background: rgba(255,255,255,0.11); transform: translateY(-2px); }
+  .stat-icon { margin-bottom: 8px; }
+  .stat-num { font-size: 22px; font-weight: 700; color: white; }
+  .stat-txt { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+  /* BOTTOM */
+  .bottom-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .bottom-card {
+    flex: 1; min-width: 260px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 18px;
+  }
+  .section-title {
+    font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.8);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .notice-item {
+    padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 12px; color: rgba(255,255,255,0.65);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .notice-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .notice-dot { width: 6px; height: 6px; border-radius: 50%; background: #6889ee; flex-shrink: 0; margin-top: 4px; }
+  .view-all-btn {
+    display: block; text-align: center; margin-top: 14px;
+    padding: 8px; border-radius: 8px; font-size: 12px;
+    color: rgba(155,175,217,0.7); text-decoration: none;
+    border: 1px solid rgba(104,137,238,0.2);
+    background: rgba(104,137,238,0.07); transition: all 0.2s;
+  }
+  .view-all-btn:hover { background: rgba(104,137,238,0.15); color: white; text-decoration: none; }
+
+  /* TIMETABLE */
+  .tt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .tt-square {
+    border-radius: 10px; padding: 10px 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 4px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    min-height: 80px; position: relative;
+  }
+  .tt-square.done { opacity: 0.35; }
+  .tt-square.current {
+    background: rgba(104,137,238,0.2);
+    border-color: rgba(104,137,238,0.5);
+    box-shadow: 0 0 12px rgba(104,137,238,0.2);
+  }
+  .tt-time { font-size: 9px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+  .tt-square.current .tt-time { color: rgba(155,175,217,0.8); }
+  .tt-subject { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.75); line-height: 1.3; }
+  .tt-square.current .tt-subject { color: white; }
+  .blink-dot {
+    position: absolute; top: 7px; right: 7px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #6889ee; animation: blink 1.2s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.1; transform: scale(0.6); }
+  }
+  .tt-break {
+    border-radius: 10px; padding: 10px 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 5px;
+    border: 1.5px dashed rgba(255,255,255,0.12);
+    background: transparent; min-height: 80px;
+  }
+  .tt-break svg { opacity: 0.3; }
+  .tt-break-label { font-size: 9px; color: rgba(255,255,255,0.3); font-style: italic; }
+  .tt-break-time { font-size: 9px; color: rgba(255,255,255,0.2); }
+</style>
+
+<div class="dash-wrap">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      HIVEMIND
+      <span>Academic Platform</span>
+    </div>
+    <a href="#" class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+      Dashboard
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 12 L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12 12 L16 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M5 5 L7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M19 5 L17 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Attendance
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="1" width="8" height="5" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="11" x2="18" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="6" y1="15" x2="18" y2="15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Assignments
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="7" x2="17" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="7" y1="11" x2="17" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="2" y1="1" x2="2" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Study Materials
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11 L7 7 Q7 3 12 3 Q17 3 17 7 L17 11" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="12" cy="17" r="2" stroke="currentColor" stroke-width="1.2"/></svg>
+      DigiLocker
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="1" x2="8" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="1" x2="16" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 14 L10 17 L17 13" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Leave Portal
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2 C8 2 6 6 6 10 L6 16 L3 19 L21 19 L18 16 L18 10 C18 6 16 2 12 2 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="3" y1="19" x2="21" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 19 Q9 22 12 22 Q15 22 15 19" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      Notice Board
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M3 4 Q3 2 5 2 L19 2 Q21 2 21 4 L21 15 Q21 17 19 17 L8 17 L3 21 L3 4 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="7" y1="7" x2="17" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="7" y1="11" x2="13" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Chat
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20 Q4 14 12 14 Q20 14 20 20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      Profile
+    </a>
+    <div class="sidebar-footer">
+      <a href="{% url 'logout' %}" class="logout-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21 L3 21 L3 3 L9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 17 L21 12 L16 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Logout
+      </a>
+    </div>
+  </div>
+
+  <div class="main-area">
+
+    <div class="top-row">
+      <div class="greeting-card">
+        <div>
+          <h2>Hey, {{ request.user.username|capfirst }}!</h2>
+          <p class="sub">Here's your academic overview for today.</p>
+        </div>
+        <div class="greeting-date">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="1.5"/></svg>
+          {% now "l, d F Y" %}
+        </div>
+        <div class="greeting-quote">"Stay consistent. Small daily improvements lead to outstanding results."</div>
+      </div>
+
+      <div class="subatt-card">
+        <div class="subatt-title">Subject Attendance</div>
+        <div class="subatt-grid" id="subatt-grid"></div>
+      </div>
+
+      <div class="att-card">
+        <div class="att-label">Overall</div>
+        <div class="att-circle" id="att-circle">
+          <div class="att-inner">
+            <div class="att-pct" id="att-pct">82%</div>
+            <div class="att-status">SAFE</div>
+          </div>
+        </div>
+        <div class="att-note">Above required 75%</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="18" rx="2" stroke="white" stroke-width="1.5"/><rect x="8" y="1" width="8" height="5" rx="2" stroke="white" stroke-width="1.5"/><line x1="6" y1="11" x2="18" y2="11" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="6" y1="15" x2="18" y2="15" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+        <div class="stat-num">3</div>
+        <div class="stat-txt">Pending assignments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="white" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="white" stroke-width="1.5"/><line x1="8" y1="1" x2="8" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="1" x2="16" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="15" r="1.2" fill="white"/><circle cx="12" cy="15" r="1.2" fill="white"/><circle cx="16" cy="15" r="1.2" fill="white"/></svg></div>
+        <div class="stat-num">2</div>
+        <div class="stat-txt">Upcoming exams</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="white" stroke-width="1.5"/><line x1="7" y1="7" x2="17" y2="7" stroke="white" stroke-width="1.2" stroke-linecap="round"/><line x1="2" y1="1" x2="2" y2="23" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="stat-num">12</div>
+        <div class="stat-txt">Study materials</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="22" height="18" rx="3" stroke="white" stroke-width="1.5"/><path d="M1 4 L12 12 L23 4" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+        <div class="stat-num">1</div>
+        <div class="stat-txt">Leave pending</div>
+      </div>
+    </div>
+
+    <div class="bottom-row">
+      <div class="bottom-card">
+        <div class="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2 C8 2 6 6 6 10 L6 16 L3 19 L21 19 L18 16 L18 10 C18 6 16 2 12 2 Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><line x1="3" y1="19" x2="21" y2="19" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Recent Notices
+        </div>
+        <div class="notice-item"><div class="notice-dot"></div>Internal assessment results published — check your portal</div>
+        <div class="notice-item"><div class="notice-dot"></div>Project submission deadline extended to March 25th</div>
+        <div class="notice-item"><div class="notice-dot"></div>Guest lecture on AI — Hall B, 2PM tomorrow</div>
+        <div class="notice-item"><div class="notice-dot"></div>Library will remain closed on Friday for maintenance</div>
+        <a href="#" class="view-all-btn">View all notices →</a>
+      </div>
+
+      <div class="bottom-card">
+        <div class="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/><path d="M12 12 L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M12 12 L16 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Today's Schedule
+        </div>
+        <div class="tt-grid" id="tt-grid"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const subjects = [
+    { code: 'CN',   pct: 62 },
+    { code: 'ML',   pct: 70 },
+    { code: 'OS',   pct: 74 },
+    { code: 'FDS',  pct: 78 },
+    { code: 'PS',   pct: 85 },
+    { code: 'ESAS', pct: 91 },
+  ];
+
+  subjects.sort((a, b) => a.pct - b.pct);
+
+  const subGrid = document.getElementById('subatt-grid');
+  subjects.forEach(sub => {
+    const level = sub.pct < 75 ? 'danger' : sub.pct < 80 ? 'caution' : 'safe';
+    const el = document.createElement('div');
+    el.className = 'subatt-square ' + level;
+    el.innerHTML =
+      (level === 'danger' ? '<div class="subatt-warn-dot"></div>' : '') +
+      '<div class="subatt-code">' + sub.code + '</div>' +
+      '<div class="subatt-pct-val">' + sub.pct + '%</div>' +
+      '<div class="subatt-bar-bg"><div class="subatt-bar-fill" style="width:' + sub.pct + '%"></div></div>';
+    subGrid.appendChild(el);
+  });
+
+  const overall = 82;
+  document.getElementById('att-circle').style.background =
+    'conic-gradient(#6889ee 0% ' + overall + '%, rgba(255,255,255,0.1) ' + overall + '% 100%)';
+  document.getElementById('att-pct').textContent = overall + '%';
+
+  const schedule = [
+    { type: 'lecture', start: '09:10', end: '10:05', subject: 'Add Subject' },
+    { type: 'lecture', start: '10:05', end: '10:50', subject: 'Add Subject' },
+    { type: 'break',   start: '10:50', end: '11:05', label: 'Short Break', icon: 'tea' },
+    { type: 'lecture', start: '11:05', end: '11:55', subject: 'Add Subject' },
+    { type: 'lecture', start: '11:55', end: '12:45', subject: 'Add Subject' },
+    { type: 'break',   start: '12:45', end: '13:30', label: 'Lunch Break', icon: 'food' },
+    { type: 'lecture', start: '13:30', end: '14:15', subject: 'Add Subject' },
+    { type: 'break',   start: '14:15', end: '15:00', label: 'Short Break', icon: 'tea' },
+    { type: 'lecture', start: '15:00', end: '16:00', subject: 'Add Subject' },
+    { type: 'lecture', start: '16:00', end: '16:30', subject: 'Add Subject' },
+  ];
+
+  function toMins(t) {
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  }
+  function getStatus(start, end) {
+    const now = new Date();
+    const cur = now.getHours() * 60 + now.getMinutes();
+    const s = toMins(start), e = toMins(end);
+    if (cur >= s && cur < e) return 'current';
+    if (cur >= e) return 'done';
+    return 'upcoming';
+  }
+  function fmt(t) {
+    const [h, m] = t.split(':').map(Number);
+    const ap = h >= 12 ? 'PM' : 'AM';
+    const hr = h % 12 || 12;
+    return hr + ':' + m.toString().padStart(2,'0') + ' ' + ap;
+  }
+
+  const teaDoodle = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 6 L4 17 Q4 20 7 20 L14 20 Q17 20 17 17 L17 6 Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M17 9 L19 9 Q22 9 22 12 Q22 15 19 15 L17 15" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M7 3 Q7 1 9 3 Q9 5 11 3" stroke="white" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>';
+
+  const foodDoodle = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="17" rx="9" ry="3" stroke="white" stroke-width="1.5"/><path d="M3 17 Q3 10 12 10 Q21 10 21 17" stroke="white" stroke-width="1.5" fill="none"/><line x1="12" y1="4" x2="12" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M9 4 Q9 7 12 7 Q15 7 15 4" stroke="white" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>';
+
+  const ttGrid = document.getElementById('tt-grid');
+  schedule.forEach(function(item) {
+    const el = document.createElement('div');
+    if (item.type === 'break') {
+      el.className = 'tt-break';
+      el.innerHTML =
+        (item.icon === 'tea' ? teaDoodle : foodDoodle) +
+        '<div class="tt-break-label">' + item.label + '</div>' +
+        '<div class="tt-break-time">' + fmt(item.start) + ' – ' + fmt(item.end) + '</div>';
+    } else {
+      const status = getStatus(item.start, item.end);
+      el.className = 'tt-square ' + status;
+      el.innerHTML =
+        (status === 'current' ? '<div class="blink-dot"></div>' : '') +
+        '<div class="tt-time">' + fmt(item.start) + '<br>' + fmt(item.end) + '</div>' +
+        '<div class="tt-subject">' + item.subject + '</div>';
+    }
+    ttGrid.appendChild(el);
+  });
+</script>
+
+{% endblock %}
+
+{% block extra_js %}{% endblock %}
