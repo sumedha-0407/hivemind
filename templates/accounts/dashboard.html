@@ -6,7 +6,7 @@
 
 {% block content %}
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700&family=Roboto:wght@400;700&display=swap');
   * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
   body {
     background: linear-gradient(90deg, hsla(221, 55%, 45%, 1) 0%, hsla(220, 78%, 18%, 1) 100%);
@@ -69,7 +69,7 @@
     border-radius: 16px; padding: 28px 32px;
     display: flex; flex-direction: column; gap: 12px;
   }
-  .greeting-card h2 { font-size: 34px; font-weight: 700; color: white; margin: 0; }
+  .greeting-card h2 { font-size: 42px; font-weight: 700; color: white; margin: 0; font-family: 'Roboto', sans-serif; }
   .greeting-card .sub { font-size: 14px; color: rgba(255,255,255,0.5); margin: 0; }
   .greeting-date {
     font-size: 12px; color: rgba(255,255,255,0.3);
@@ -87,9 +87,6 @@
   .dept-badge {
     font-size: 11px; font-weight: 700;
     color: rgba(155,175,217,0.9);
-    background: rgba(104,137,238,0.15);
-    border: 1px solid rgba(104,137,238,0.25);
-    border-radius: 20px; padding: 4px 12px;
   }
   .dept-info {
     font-size: 11px; color: rgba(255,255,255,0.3);
@@ -257,7 +254,7 @@
 <div class="dash-wrap">
   <div class="sidebar">
     <div class="sidebar-logo">
-      HIVEMIND
+      H I V E M I N D
       <span>Academic Platform</span>
     </div>
     <a href="{% url 'dashboard' %}" class="nav-item active">
@@ -309,16 +306,15 @@
     <div class="top-row">
       <div class="greeting-card">
         <div>
-          <h2>Hey, {{ request.user.username|capfirst }}!</h2>
-          <p class="sub">Here's your academic overview for today.</p>
+          <h2>Hey, {{ request.user.username|capfirst }} </h2>
         </div>
         <div class="greeting-dept">
           <span class="dept-badge">B.Tech AI & DS</span>
-          <span class="dept-info">II Year · IV Semester · Section A</span>
+          <span class="dept-info">II Year · IV Semester</span>
         </div>
         <div class="greeting-date">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="1.5"/></svg>
-          {% now "g:i A" %}
+          {% now "l, d F Y g:i A" %}
         </div>
         <div class="greeting-quote">"Stay consistent. Small daily improvements lead to outstanding results."</div>
       </div>
@@ -424,12 +420,12 @@
     { type: 'break',   start: '10:50', end: '11:05', label: 'Short Break', icon: 'tea' },
     { type: 'lecture', start: '11:05', end: '11:55', subject: 'Add Subject' },
     { type: 'lecture', start: '11:55', end: '12:45', subject: 'Add Subject' },
-    { type: 'break',   start: '12:45', end: '1:30', label: 'Lunch Break', icon: 'food' },
-    { type: 'lecture', start: '1:30', end: '2:15', subject: 'Add Subject' },
-    { type: 'lecture', start: '2:15', end: '3:00', subject: 'Add Subject' },
-    { type: 'break',   start: '3:00', end: '3:15', label: 'Short Break', icon: 'tea' },
-    { type: 'lecture', start: '3:15', end: '4:00', subject: 'Add Subject' },
-    { type: 'lecture', start: '4:00', end: '4:30', subject: 'Add Subject' },
+    { type: 'break',   start: '12:45', end: '13:30', label: 'Lunch Break', icon: 'food' },
+    { type: 'lecture', start: '13:30', end: '14:15', subject: 'Add Subject' },
+    { type: 'lecture', start: '14:15', end: '15:00', subject: 'Add Subject' },
+    { type: 'break',   start: '15:00', end: '15:15', label: 'Short Break', icon: 'tea' },
+    { type: 'lecture', start: '15:15', end: '16:00', subject: 'Add Subject' },
+    { type: 'lecture', start: '16:00', end: '16:30', subject: 'Add Subject' },
   ];
 
   function toMins(t) {
@@ -446,7 +442,7 @@
   }
   function fmt(t) {
     const [h, m] = t.split(':').map(Number);
-    const ap = h >= 12 ? 'PM' : 'AM';
+    const ap = h >= 12 ? 'pm' : 'am';
     const hr = h % 12 || 12;
     return hr + ':' + m.toString().padStart(2,'0') + ' ' + ap;
   }
