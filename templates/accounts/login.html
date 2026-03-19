@@ -1,26 +1,121 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIVEMIND - Login</title>
-</head>
-<body>
-    <h1>HIVEMIND</h1>
-    <h2>Login</h2>
+{% extends 'base.html' %}
+
+{% block title %}HIVEMIND - Login{% endblock %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700&display=swap');
+
+  body { 
+    background: linear-gradient(90deg, hsla(221, 55%, 45%, 1) 0%, hsla(220, 78%, 18%, 1) 100%);
+    min-height: 100vh;
+  }
+
+  .login-wrap {
+    min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+
+  .glass-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 36px 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 32px rgba(0,0,50,0.2);
+  }
+
+  .card-logo { 
+    font-family: 'Righteous', cursive; font-size: 28px; 
+    color: white;
+    margin-bottom: 4px;
+  }
+
+  .card-sub { font-family: 'Nunito', sans-serif; font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 24px; }
+
+  .inp-label { font-family: 'Nunito', sans-serif; font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 5px; display: block; font-weight: 600; }
+
+  .inp {
+    width: 100%; padding: 11px 14px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.15); font-size: 14px; color: white;
+    margin-bottom: 16px; outline: none; font-family: 'Nunito', sans-serif;
+    transition: all 0.2s;
+  }
+  .inp::placeholder { color: rgba(255,255,255,0.5); }
+  .inp:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.25); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
+
+  .btn-main {
+    width: 100%; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+    background: white;
+    color: #103783; font-size: 15px; font-weight: 700;
+    font-family: 'Nunito', sans-serif; letter-spacing: 0.5px;
+    transition: all 0.25s; box-shadow: 0 4px 15px rgba(0,0,80,0.2);
+  }
+  .btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,80,0.3); }
+
+  .link-text { text-align: center; font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 16px; font-family: 'Nunito', sans-serif; }
+  .link-text a { color: white; text-decoration: none; font-weight: 600; }
+  .link-text a:hover { text-decoration: underline; }
+
+  .back-link { text-align: center; margin-top: 10px; }
+  .back-link a { font-size: 12px; color: rgba(255,255,255,0.5); font-family: 'Nunito', sans-serif; text-decoration: none; }
+  .back-link a:hover { color: white; }
+
+  .doodle { position: fixed; opacity: 0.08; pointer-events: none; animation: floatD var(--dur,6s) ease-in-out infinite alternate; }
+  @keyframes floatD { 0%{transform:translate(0,0) rotate(var(--r0,0deg));} 100%{transform:translate(var(--tx,8px),var(--ty,-10px)) rotate(var(--r1,5deg));} }
+</style>
+
+<!-- DOODLES -->
+<svg class="doodle" style="width:70px;top:8%;left:6%;--dur:7s;--tx:10px;--ty:-12px;--r0:-4deg;--r1:4deg;" viewBox="0 0 60 75" fill="none">
+  <rect x="4" y="10" width="52" height="62" rx="5" stroke="white" stroke-width="2.5"/>
+  <rect x="20" y="4" width="20" height="12" rx="4" stroke="white" stroke-width="2.5"/>
+  <line x1="14" y1="28" x2="46" y2="28" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="14" y1="38" x2="46" y2="38" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="14" y1="48" x2="36" y2="48" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</svg>
+<svg class="doodle" style="width:65px;top:10%;right:8%;--dur:8s;--tx:-8px;--ty:10px;--r0:3deg;--r1:-4deg;" viewBox="0 0 60 65" fill="none">
+  <rect x="3" y="10" width="54" height="52" rx="6" stroke="white" stroke-width="2.5"/>
+  <line x1="3" y1="24" x2="57" y2="24" stroke="white" stroke-width="2.5"/>
+  <line x1="18" y1="4" x2="18" y2="18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="42" y1="4" x2="42" y2="18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="18" cy="36" r="3" fill="white"/>
+  <circle cx="30" cy="36" r="3" fill="white"/>
+  <circle cx="42" cy="36" r="3" fill="white"/>
+</svg>
+<svg class="doodle" style="width:68px;bottom:12%;right:7%;--dur:10s;--tx:-10px;--ty:8px;--r0:-6deg;--r1:4deg;" viewBox="0 0 65 65" fill="none">
+  <circle cx="32" cy="32" r="26" stroke="white" stroke-width="2.5"/>
+  <path d="M32 32 L32 6 A26 26 0 0 1 58 32 Z" stroke="white" stroke-width="2" fill="none"/>
+  <line x1="32" y1="32" x2="32" y2="6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="32" y1="32" x2="58" y2="32" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</svg>
+
+<div class="login-wrap">
+  <div class="glass-card">
+    <div class="card-logo">Hey There !!</div>
+    <div class="card-sub">Welcome back! Sign in to continue.</div>
 
     {% if messages %}
-        {% for message in messages %}
-            <p style="color: red;">{{ message }}</p>
-        {% endfor %}
+      {% for message in messages %}
+        <div style="background:rgba(255,80,80,0.2);border:1px solid rgba(255,80,80,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:white;margin-bottom:16px;font-family:'Nunito',sans-serif;">
+          {{ message }}
+        </div>
+      {% endfor %}
     {% endif %}
 
     <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
+      {% csrf_token %}
+      <label class="inp-label">USERNAME</label>
+      <input class="inp" type="text" name="username" placeholder="Enter your username" required/>
+      <label class="inp-label">PASSWORD</label>
+      <input class="inp" type="password" name="password" placeholder="••••••••" required/>
+      <button type="submit" class="btn-main">SIGN IN→</button>
     </form>
 
-    <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
-</body>
-</html>
+    <div class="link-text">Don't have an account? <a href="{% url 'register' %}">Register here</a></div>
+    <div class="back-link"><a href="{% url 'home' %}">← Back to Home</a></div>
+  </div>
+</div>
+{% endblock %}
