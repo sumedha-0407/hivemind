@@ -40,3 +40,6 @@ def cover_view(request):
 
 def leave_view(request):
     return render(request, 'accounts/leave.html')
+
+def notice_view(request):
+    return render(request, 'accounts/notice.html')
