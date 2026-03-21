@@ -52,3 +52,6 @@ def subject_materials_view(request, code):
 
 def assignments_view(request):
     return render(request, 'accounts/assignments.html')
+
+def digilocker_view(request):
+    return render(request, 'accounts/digilocker.html')

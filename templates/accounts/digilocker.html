@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+
+{% block title %}HIVEMIND - DigiLocker{% endblock %}
+
+{% block background %}{% endblock background %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700&display=swap');
+  * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+  body {
+    background: linear-gradient(90deg, hsla(221, 55%, 45%, 1) 0%, hsla(220, 78%, 18%, 1) 100%);
+    min-height: 100vh;
+  }
+
+  /* TOP NAV */
+  .top-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    background: rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .nav-logo { font-family: 'Righteous', cursive; font-size: 20px; color: white; }
+  .nav-logo span { font-size: 11px; color: rgba(255,255,255,0.4); display: block; font-family: 'Nunito', sans-serif; font-weight: 400; }
+  .nav-back {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: rgba(255,255,255,0.5);
+    text-decoration: none; transition: all 0.2s;
+  }
+  .nav-back:hover { color: white; text-decoration: none; }
+
+  /* MAIN */
+  .main { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+  /* PAGE HEADER */
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .page-title { font-size: 24px; font-weight: 700; color: white; margin: 0; }
+  .page-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin: 4px 0 0; }
+
+  /* UPLOAD BUTTON */
+  .upload-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 10px;
+    background: rgba(104,137,238,0.2);
+    border: 1px solid rgba(104,137,238,0.35);
+    color: #9bafd9; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif;
+  }
+  .upload-btn:hover { background: rgba(104,137,238,0.35); color: white; }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 0;
+    border-bottom: 2px solid rgba(255,255,255,0.08);
+    margin-bottom: 24px;
+  }
+  .tab {
+    padding: 10px 22px; cursor: pointer;
+    font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,0.4);
+    border-radius: 10px 10px 0 0;
+    border: 1px solid transparent; border-bottom: none;
+    transition: all 0.2s; position: relative; bottom: -2px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tab:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
+  .tab.active {
+    color: white; font-weight: 700;
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.1);
+    border-bottom-color: transparent;
+  }
+  .tab .tab-count {
+    font-size: 10px; padding: 2px 7px; border-radius: 10px;
+    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5);
+  }
+  .tab.active .tab-count { background: rgba(104,137,238,0.3); color: #9bafd9; }
+
+  /* FILE GRID */
+  .file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  /* FILE TILE */
+  .file-tile {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 16px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: all 0.2s; position: relative;
+  }
+  .file-tile:hover { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.18); transform: translateY(-2px); }
+
+  .file-type-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .icon-pdf { background: rgba(220,80,80,0.15); color: #ff9090; border: 1px solid rgba(220,80,80,0.2); }
+  .icon-doc { background: rgba(60,120,220,0.15); color: #80b0ff; border: 1px solid rgba(60,120,220,0.2); }
+  .icon-img { background: rgba(40,180,120,0.15); color: #70d0a0; border: 1px solid rgba(40,180,120,0.2); }
+  .icon-ppt { background: rgba(240,100,40,0.15); color: #ff9060; border: 1px solid rgba(240,100,40,0.2); }
+  .icon-vid { background: rgba(160,80,220,0.15); color: #c090ff; border: 1px solid rgba(160,80,220,0.2); }
+  .icon-other { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.1); }
+
+  .file-name {
+    font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.85);
+    line-height: 1.4; word-break: break-word;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    line-clamp: 2; overflow: hidden;
+  }
+  .file-meta { font-size: 10px; color: rgba(255,255,255,0.35); line-height: 1.5; }
+
+  .file-actions { display: flex; gap: 6px; margin-top: auto; }
+  .file-action-btn {
+    flex: 1; padding: 5px 0; border-radius: 7px; cursor: pointer;
+    font-size: 11px; font-weight: 600; text-align: center;
+    transition: all 0.2s; border: none; font-family: 'Nunito', sans-serif;
+  }
+  .btn-download { background: rgba(104,137,238,0.15); color: #9bafd9; border: 1px solid rgba(104,137,238,0.2); }
+  .btn-download:hover { background: rgba(104,137,238,0.3); color: white; }
+  .btn-delete { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.08); }
+  .btn-delete:hover { background: rgba(220,80,80,0.15); color: #ff9090; border-color: rgba(220,80,80,0.2); }
+
+  /* TAG BADGE */
+  .tag-badge {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 2px 7px; border-radius: 5px;
+  }
+  .tag-self { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.1); }
+  .tag-document { background: rgba(104,137,238,0.15); color: #9bafd9; border: 1px solid rgba(104,137,238,0.2); }
+  .tag-certificate { background: rgba(160,130,255,0.15); color: #c090ff; border: 1px solid rgba(160,130,255,0.2); }
+  .tag-bill { background: rgba(240,160,64,0.12); color: #ffc870; border: 1px solid rgba(240,160,64,0.2); }
+  .tag-download { background: rgba(40,180,120,0.12); color: #70d0a0; border: 1px solid rgba(40,180,120,0.2); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    grid-column: 1 / -1; text-align: center;
+    padding: 60px 20px; color: rgba(255,255,255,0.25);
+  }
+  .empty-state p { font-size: 13px; margin-top: 12px; line-height: 1.6; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,20,0.7); z-index: 100;
+    display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: linear-gradient(135deg, hsla(221,55%,35%,1), hsla(220,78%,22%,1));
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px; padding: 28px 32px;
+    width: 100%; max-width: 420px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .modal-title { font-size: 18px; font-weight: 700; color: white; }
+  .modal-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: -10px; }
+
+  .upload-zone {
+    border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px;
+    padding: 28px 20px; text-align: center; cursor: pointer;
+    transition: all 0.2s; position: relative;
+  }
+  .upload-zone:hover { border-color: rgba(104,137,238,0.4); background: rgba(104,137,238,0.05); }
+  .upload-zone input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  .upload-zone-text { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+  .upload-zone-text span { color: #9bafd9; font-weight: 700; }
+  .selected-file { font-size: 12px; color: #9bafd9; margin-top: 8px; font-weight: 600; }
+
+  .modal-label { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .tag-options { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag-option {
+    padding: 6px 14px; border-radius: 8px; cursor: pointer;
+    font-size: 12px; font-weight: 600; transition: all 0.2s;
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .tag-option:hover { background: rgba(255,255,255,0.1); color: white; }
+  .tag-option.selected { background: rgba(104,137,238,0.25); color: #9bafd9; border-color: rgba(104,137,238,0.4); }
+
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-save {
+    flex: 1; padding: 11px; border-radius: 10px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, rgba(104,137,238,0.8), rgba(80,110,210,0.9));
+    color: white; font-size: 14px; font-weight: 700;
+    font-family: 'Nunito', sans-serif; transition: all 0.25s;
+  }
+  .modal-save:hover { background: linear-gradient(135deg, rgba(104,137,238,1), rgba(80,110,210,1)); }
+  .modal-cancel {
+    padding: 11px 20px; border-radius: 10px; cursor: pointer;
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.1); font-size: 14px;
+    font-family: 'Nunito', sans-serif; transition: all 0.2s;
+  }
+  .modal-cancel:hover { background: rgba(255,255,255,0.1); color: white; }
+</style>
+
+<!-- TOP NAV -->
+<div class="top-nav">
+  <div class="nav-logo">
+    HIVEMIND
+    <span>DigiLocker</span>
+  </div>
+  <a href="{% url 'dashboard' %}" class="nav-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back to Dashboard
+  </a>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-title">My DigiLocker</div>
+      <div class="page-sub">Your personal secure document storage — only you can access this</div>
+    </div>
+    <button class="upload-btn" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3 L12 16 M7 8 L12 3 L17 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 20 L21 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Upload File
+    </button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="setTab('all')" id="tab-all">All <span class="tab-count" id="tc-all">0</span></div>
+    <div class="tab" onclick="setTab('self')" id="tab-self">My Files <span class="tab-count" id="tc-self">0</span></div>
+    <div class="tab" onclick="setTab('document')" id="tab-document">Documents <span class="tab-count" id="tc-document">0</span></div>
+    <div class="tab" onclick="setTab('certificate')" id="tab-certificate">Certificates <span class="tab-count" id="tc-certificate">0</span></div>
+    <div class="tab" onclick="setTab('bill')" id="tab-bill">Bills <span class="tab-count" id="tc-bill">0</span></div>
+  </div>
+
+  <!-- FILE GRID -->
+  <div class="file-grid" id="file-grid"></div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div>
+      <div class="modal-title">Upload File</div>
+      <div class="modal-sub">Files are stored locally and only accessible by you</div>
+    </div>
+
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" id="file-input" onchange="fileSelected(this)" accept="*/*"/>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="opacity:0.3;margin:0 auto"><path d="M12 3 L12 16 M7 8 L12 3 L17 8" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 20 L21 20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="upload-zone-text">Drop file here or <span>browse</span></div>
+      <div class="selected-file" id="selected-file-name"></div>
+    </div>
+
+    <div>
+      <div class="modal-label">TAG THIS FILE AS</div>
+      <div class="tag-options">
+        <div class="tag-option selected" onclick="selectTag(this, 'self')">My File</div>
+        <div class="tag-option" onclick="selectTag(this, 'document')">Document</div>
+        <div class="tag-option" onclick="selectTag(this, 'certificate')">Certificate</div>
+        <div class="tag-option" onclick="selectTag(this, 'bill')">Bill</div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-save" onclick="saveFile()">Save to DigiLocker</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Sample dummy files
+  let files = [
+    { id: 3, name: 'Aadhar Card.pdf', type: 'pdf', tag: 'document', size: '0.5 MB', date: '15 Mar 2026, 10:20 AM', subject: null },
+    { id: 4, name: 'Fee Paid Receipt - Sem 4.pdf', type: 'pdf', tag: 'bill', size: '0.3 MB', date: '10 Mar 2026, 2:45 PM', subject: null },
+    { id: 5, name: 'Python Course Certificate.pdf', type: 'pdf', tag: 'certificate', size: '1.1 MB', date: '5 Mar 2026, 9:00 AM', subject: null },
+    { id: 6, name: 'Personal Notes.docx', type: 'doc', tag: 'self', size: '0.8 MB', date: '1 Mar 2026, 11:30 AM', subject: null },
+    { id: 7, name: 'Higher Secondary Marksheet.pdf', type: 'pdf', tag: 'document', size: '0.9 MB', date: '28 Feb 2026, 3:15 PM', subject: null },
+    { id: 8, name: 'Hackathon Participation Certificate.pdf', type: 'pdf', tag: 'certificate', size: '0.7 MB', date: '20 Feb 2026, 4:00 PM', subject: null },
+  ];
+
+  let currentTab = 'all';
+  let selectedTag = 'self';
+  let selectedFileName = '';
+
+  function getTypeLabel(type) {
+    return { pdf: 'PDF', doc: 'DOC', ppt: 'PPT', img: 'IMG', vid: 'VID' }[type] || 'FILE';
+  }
+
+  function getTagLabel(tag) {
+    return { self: 'MY FILE', document: 'DOCUMENT', certificate: 'CERTIFICATE', bill: 'BILL' }[tag] || tag.toUpperCase();
+  }
+
+  function setTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    render();
+  }
+
+  function render() {
+    const filtered = currentTab === 'all' ? files : files.filter(f => f.tag === currentTab);
+
+    // Update counts
+    const tags = ['all', 'self', 'document', 'certificate', 'bill'];
+    tags.forEach(tag => {
+      const count = tag === 'all' ? files.length : files.filter(f => f.tag === tag).length;
+      const el = document.getElementById('tc-' + tag);
+      if (el) el.textContent = count;
+    });
+
+    const grid = document.getElementById('file-grid');
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style="opacity:0.2;margin:0 auto"><rect x="3" y="11" width="18" height="12" rx="2" stroke="white" stroke-width="1.5"/><path d="M7 11 L7 7 Q7 3 12 3 Q17 3 17 7 L17 11" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        <p>No files here yet.<br>Click "Upload File" to add your first file.</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(f => `
+      <div class="file-tile">
+        <span class="tag-badge tag-${f.tag}">${getTagLabel(f.tag)}</span>
+        <div class="file-type-icon icon-${f.type}">${getTypeLabel(f.type)}</div>
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">
+          ${f.size}<br>
+          ${f.date}
+          ${f.subject ? `<br>${f.subject}` : ''}
+        </div>
+        <div class="file-actions">
+          <button class="file-action-btn btn-download" onclick="downloadFile(${f.id})">Download</button>
+          <button class="file-action-btn btn-delete" onclick="deleteFile(${f.id})">Remove</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function downloadFile(id) {
+    const f = files.find(x => x.id === id);
+    if (f) alert(`Downloading "${f.name}"...\n(Backend integration needed for actual download)`);
+  }
+
+  function deleteFile(id) {
+    if (confirm('Remove this file from your DigiLocker?')) {
+      files = files.filter(f => f.id !== id);
+      render();
+    }
+  }
+
+  function openModal() {
+    document.getElementById('modal-overlay').classList.add('open');
+    document.getElementById('selected-file-name').textContent = '';
+    document.getElementById('file-input').value = '';
+    selectedFileName = '';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+
+  function fileSelected(input) {
+    if (input.files && input.files[0]) {
+      selectedFileName = input.files[0].name;
+      document.getElementById('selected-file-name').textContent = '📄 ' + selectedFileName;
+    }
+  }
+
+  function selectTag(el, tag) {
+    document.querySelectorAll('.tag-option').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedTag = tag;
+  }
+
+  function getFileType(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    if (['pdf'].includes(ext)) return 'pdf';
+    if (['doc', 'docx'].includes(ext)) return 'doc';
+    if (['ppt', 'pptx'].includes(ext)) return 'ppt';
+    if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return 'img';
+    if (['mp4', 'avi', 'mov'].includes(ext)) return 'vid';
+    return 'other';
+  }
+
+  function getFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function saveFile() {
+    const input = document.getElementById('file-input');
+    if (!input.files || !input.files[0]) {
+      alert('Please select a file first!');
+      return;
+    }
+    const file = input.files[0];
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) +
+      ', ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    files.unshift({
+      id: Date.now(),
+      name: file.name,
+      type: getFileType(file.name),
+      tag: selectedTag,
+      size: getFileSize(file.size),
+      date: dateStr,
+      subject: null
+    });
+
+    closeModal();
+    setTab('all');
+  }
+
+  // Close modal on overlay click
+  document.getElementById('modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  render();
+</script>
+
+{% endblock %}
+
+{% block extra_js %}{% endblock %}
+
