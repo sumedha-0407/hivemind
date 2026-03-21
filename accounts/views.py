@@ -49,3 +49,6 @@ def study_materials_view(request):
 
 def subject_materials_view(request, code):
     return render(request, 'accounts/subject_materials.html', {'code': code})
+
+def assignments_view(request):
+    return render(request, 'accounts/assignments.html')

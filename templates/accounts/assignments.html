@@ -1,0 +1,626 @@
+{% extends 'base.html' %}
+
+{% block title %}HIVEMIND - Assignments{% endblock %}
+
+{% block background %}{% endblock background %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700&display=swap');
+  * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+  body {
+    background: linear-gradient(90deg, hsla(221, 55%, 45%, 1) 0%, hsla(220, 78%, 18%, 1) 100%);
+    min-height: 100vh;
+  }
+  .dash-wrap { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column;
+    padding: 24px 0; position: fixed;
+    height: 100vh; z-index: 10;
+  }
+  .sidebar-logo {
+    font-family: 'Righteous', cursive;
+    font-size: 20px; color: white;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 16px;
+  }
+  .sidebar-logo span {
+    font-size: 10px; color: rgba(255,255,255,0.4);
+    display: block; font-family: 'Nunito', sans-serif;
+    font-weight: 400; letter-spacing: 1px; margin-top: 2px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; font-size: 13px;
+    color: rgba(255,255,255,0.55); cursor: pointer;
+    transition: all 0.2s; text-decoration: none;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: white; text-decoration: none; }
+  .nav-item.active { background: rgba(104,137,238,0.15); color: #9bafd9; border-left-color: #6889ee; }
+  .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+  .sidebar-footer {
+    margin-top: auto; padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .logout-btn {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: rgba(255,255,255,0.4);
+    text-decoration: none; transition: all 0.2s;
+  }
+  .logout-btn:hover { color: #ff6b6b; text-decoration: none; }
+
+  .main-area { margin-left: 220px; flex: 1; padding: 28px 32px; }
+
+  /* PAGE HEADER */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .page-title { font-size: 24px; font-weight: 700; color: white; margin: 0; }
+  .page-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin: 4px 0 0; }
+
+  /* STATS ROW */
+  .stats-mini { display: flex; gap: 12px; margin-bottom: 20px; }
+  .stat-mini {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 12px 18px;
+    display: flex; flex-direction: column; gap: 2px; flex: 1;
+  }
+  .stat-mini-val { font-size: 20px; font-weight: 700; color: white; }
+  .stat-mini-lbl { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+  /* DUE TOMORROW BANNER */
+  .due-banner {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-left: 3px solid rgba(255,255,255,0.6);
+    border-radius: 12px; padding: 12px 18px;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.8} }
+  .due-banner-text { font-size: 13px; color: white; font-weight: 600; }
+  .due-banner-sub { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+  /* FILTER TABS */
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .filter-tab {
+    padding: 7px 18px; border-radius: 8px; cursor: pointer;
+    font-size: 12px; font-weight: 600; transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .filter-tab:hover { background: rgba(255,255,255,0.09); color: white; }
+  .filter-tab.active { background: rgba(104,137,238,0.2); color: #9bafd9; border-color: rgba(104,137,238,0.35); }
+  .filter-tab .tab-count { font-size: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 1px 6px; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex; align-items: center; gap: 10px;
+    margin: 24px 0 12px; font-size: 12px; font-weight: 700;
+    color: rgba(255,255,255,0.4); letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .section-header::after {
+    content: ''; flex: 1; height: 1px;
+    background: rgba(255,255,255,0.08);
+  }
+  .section-header.record-header { color: rgba(155,175,217,0.6); }
+  .section-header.general-header { color: rgba(255,255,255,0.4); }
+
+  /* ASSIGNMENT ROW */
+  .assignment-row {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-left: 3px solid rgba(255,255,255,0.15);
+    border-radius: 12px; margin-bottom: 8px;
+    overflow: hidden; transition: all 0.2s;
+  }
+  .assignment-row:hover { background: rgba(255,255,255,0.09); }
+  .assignment-row.overdue { border-left-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); }
+  .assignment-row.submitted { opacity: 0.6; }
+  .assignment-row.record { border-left-color: rgba(104,137,238,0.6); background: rgba(104,137,238,0.06); }
+  .assignment-row.general { border-left-color: rgba(200,180,255,0.4); }
+
+  .assignment-main {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 18px; cursor: pointer;
+  }
+
+  .subject-pill {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    color: rgba(155,175,217,0.8);
+    background: rgba(104,137,238,0.12);
+    border: 1px solid rgba(104,137,238,0.2);
+    border-radius: 6px; padding: 3px 10px;
+    flex-shrink: 0; min-width: 70px; text-align: center;
+  }
+  .record-pill {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    color: #9bafd9;
+    background: rgba(104,137,238,0.2);
+    border: 1px solid rgba(104,137,238,0.35);
+    border-radius: 6px; padding: 3px 10px;
+    flex-shrink: 0; min-width: 70px; text-align: center;
+  }
+  .general-pill {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    color: rgba(200,180,255,0.9);
+    background: rgba(160,130,255,0.12);
+    border: 1px solid rgba(160,130,255,0.2);
+    border-radius: 6px; padding: 3px 10px;
+    flex-shrink: 0; min-width: 70px; text-align: center;
+  }
+
+  .assignment-info { flex: 1; min-width: 0; }
+  .assignment-title { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9); }
+  .assignment-subject { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+  .assignment-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+  .due-date { font-size: 11px; color: rgba(255,255,255,0.4); text-align: right; }
+  .days-left { font-size: 11px; font-weight: 700; }
+  .days-left.urgent { color: rgba(255,255,255,0.8); }
+  .days-left.normal { color: rgba(155,175,217,0.7); }
+  .days-left.overdue { color: rgba(255,200,200,0.8); }
+
+  /* STATUS BADGE */
+  .status-badge {
+    padding: 3px 10px; border-radius: 6px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px; flex-shrink: 0;
+  }
+  .badge-pending { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.12); }
+  .badge-submitted { background: rgba(104,137,238,0.15); color: #9bafd9; border: 1px solid rgba(104,137,238,0.25); }
+  .badge-overdue { background: rgba(255,255,255,0.12); color: rgba(255,220,220,0.8); border: 1px solid rgba(255,255,255,0.2); }
+
+  /* SUBMIT TOGGLE */
+  .submit-btn {
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+    font-size: 11px; font-weight: 600; transition: all 0.2s;
+    background: rgba(104,137,238,0.15); color: #9bafd9;
+    border: 1px solid rgba(104,137,238,0.25); flex-shrink: 0;
+  }
+  .submit-btn:hover { background: rgba(104,137,238,0.3); color: white; }
+  .submit-btn.unsubmit { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4); border-color: rgba(255,255,255,0.1); }
+
+  /* CHEVRON */
+  .chevron { transition: transform 0.2s; color: rgba(255,255,255,0.3); flex-shrink: 0; }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* EXPAND */
+  .assignment-expand {
+    max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+    border-top: 0px solid rgba(255,255,255,0.06);
+  }
+  .assignment-expand.open {
+    max-height: 300px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .expand-content {
+    padding: 14px 18px 16px 18px;
+    font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.7;
+  }
+  .expand-meta {
+    display: flex; gap: 20px; margin-top: 10px; flex-wrap: wrap;
+  }
+  .expand-meta-item { font-size: 11px; color: rgba(255,255,255,0.35); display: flex; align-items: center; gap: 5px; }
+
+  /* DUE TOMORROW BADGE */
+  .due-tomorrow-badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    background: rgba(255,255,255,0.15); color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 5px; padding: 2px 7px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .empty-section { font-size: 13px; color: rgba(255,255,255,0.25); padding: 16px 0; text-align: center; }
+</style>
+
+<div class="dash-wrap">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      HIVEMIND
+      <span>Academic Platform</span>
+    </div>
+    <a href="{% url 'dashboard' %}" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+      Dashboard
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 12 L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12 12 L16 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Attendance
+    </a>
+    <a href="{% url 'assignments' %}" class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="1" width="8" height="5" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="11" x2="18" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="6" y1="15" x2="18" y2="15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Assignments
+    </a>
+    <a href="{% url 'study_materials' %}" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="7" x2="17" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="7" y1="11" x2="17" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="2" y1="1" x2="2" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Study Materials
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11 L7 7 Q7 3 12 3 Q17 3 17 7 L17 11" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="12" cy="17" r="2" stroke="currentColor" stroke-width="1.2"/></svg>
+      DigiLocker
+    </a>
+    <a href="{% url 'leave' %}" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="1" x2="8" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="1" x2="16" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 14 L10 17 L17 13" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Leave Portal
+    </a>
+    <a href="{% url 'notice' %}" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2 C8 2 6 6 6 10 L6 16 L3 19 L21 19 L18 16 L18 10 C18 6 16 2 12 2 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="3" y1="19" x2="21" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 19 Q9 22 12 22 Q15 22 15 19" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      Notice Board
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M3 4 Q3 2 5 2 L19 2 Q21 2 21 4 L21 15 Q21 17 19 17 L8 17 L3 21 L3 4 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="7" y1="7" x2="17" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="7" y1="11" x2="13" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Discussions
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20 Q4 14 12 14 Q20 14 20 20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      Profile
+    </a>
+    <div class="sidebar-footer">
+      <a href="{% url 'logout' %}" class="logout-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21 L3 21 L3 3 L9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 17 L21 12 L16 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Logout
+      </a>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Assignments</div>
+        <div class="page-sub">Track and manage all your assignments and record submissions</div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-mini" id="stats-mini"></div>
+
+    <!-- DUE TOMORROW BANNER -->
+    <div id="due-banner" style="display:none;" class="due-banner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/><line x1="12" y1="7" x2="12" y2="13" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="white"/></svg>
+      <div>
+        <div class="due-banner-text" id="due-banner-text">Assignment due tomorrow!</div>
+        <div class="due-banner-sub" id="due-banner-sub"></div>
+      </div>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="filter-tabs">
+      <div class="filter-tab active" onclick="setFilter('all')" id="ftab-all">All <span class="tab-count" id="fc-all">0</span></div>
+      <div class="filter-tab" onclick="setFilter('pending')" id="ftab-pending">Pending <span class="tab-count" id="fc-pending">0</span></div>
+      <div class="filter-tab" onclick="setFilter('submitted')" id="ftab-submitted">Submitted <span class="tab-count" id="fc-submitted">0</span></div>
+      <div class="filter-tab" onclick="setFilter('overdue')" id="ftab-overdue">Overdue <span class="tab-count" id="fc-overdue">0</span></div>
+    </div>
+
+    <!-- ASSIGNMENTS LIST -->
+    <div id="assignments-container"></div>
+  </div>
+</div>
+
+<script>
+  // All assignments data
+  let assignments = [
+    // REGULAR
+    {
+      id: 1, type: 'regular',
+      subject: 'CS3591', subjectName: 'Computer Networks',
+      title: 'Write a detailed report on OSI Model and TCP/IP Protocol Suite',
+      description: 'Prepare a minimum 5-page report explaining all 7 layers of the OSI model and compare it with the TCP/IP protocol suite. Include diagrams and real-world examples for each layer. Submit as a PDF document.',
+      postedBy: 'Mr. V. Surendiren', postedDate: '2026-03-15',
+      dueDate: '2026-04-05', status: 'pending'
+    },
+    {
+      id: 2, type: 'regular',
+      subject: 'AD3451', subjectName: 'Machine Learning',
+      title: 'Implement Linear Regression from scratch using Python',
+      description: 'Implement linear regression algorithm without using sklearn library. Use only NumPy and Pandas. Apply it on the provided housing dataset. Submit .ipynb file with proper comments and output screenshots.',
+      postedBy: 'Mrs. S. Aswini', postedDate: '2026-03-18',
+      dueDate: '2026-03-22', status: 'pending'
+    },
+    {
+      id: 3, type: 'regular',
+      subject: 'AL3452', subjectName: 'Operating Systems',
+      title: 'Simulate CPU Scheduling Algorithms',
+      description: 'Write a program to simulate FCFS, SJF, Round Robin and Priority scheduling algorithms. Calculate average waiting time and turnaround time for each. Submit source code and output.',
+      postedBy: 'Mrs. Kavitha', postedDate: '2026-03-10',
+      dueDate: '2026-03-20', status: 'submitted'
+    },
+    {
+      id: 4, type: 'regular',
+      subject: 'AD3491', subjectName: 'Fundamentals of Data Science',
+      title: 'Exploratory Data Analysis on given dataset',
+      description: 'Perform complete EDA on the provided dataset. Include data cleaning, visualization using matplotlib and seaborn, statistical analysis and insights. Submit Jupyter notebook.',
+      postedBy: 'Mr. R. Vinoth Kumar', postedDate: '2026-03-12',
+      dueDate: '2026-03-28', status: 'pending'
+    },
+    {
+      id: 5, type: 'regular',
+      subject: 'MA3391', subjectName: 'Probability & Statistics',
+      title: 'Solve problem set on Probability Distributions',
+      description: 'Solve all 20 problems from the provided problem set on Binomial, Poisson and Normal distributions. Show complete working for each problem. Submit handwritten or typed.',
+      postedBy: 'Mr. N. Thirumoorthy', postedDate: '2026-03-17',
+      dueDate: '2026-03-25', status: 'pending'
+    },
+    {
+      id: 6, type: 'regular',
+      subject: 'GE3451', subjectName: 'Environmental Science and Sustainability',
+      title: 'Case study on Environmental Pollution in Tamil Nadu',
+      description: 'Write a case study (minimum 3 pages) on any one environmental pollution issue in Tamil Nadu. Include causes, effects, current status and suggested solutions. Submit as Word document.',
+      postedBy: 'Ms. Archana', postedDate: '2026-03-14',
+      dueDate: '2026-04-01', status: 'submitted'
+    },
+    // GENERAL
+    {
+      id: 7, type: 'general',
+      subject: 'GENERAL', subjectName: 'General',
+      title: 'Submit your Project Proposal for Mini Project',
+      description: 'All students must submit a one-page project proposal for the mini project. Include project title, team members (max 3), problem statement, proposed solution and technology stack. Submit to class coordinator.',
+      postedBy: 'Dr. R. Priya — HOD, AI&DS', postedDate: '2026-03-19',
+      dueDate: '2026-03-28', status: 'pending'
+    },
+    {
+      id: 8, type: 'general',
+      subject: 'GENERAL', subjectName: 'General',
+      title: 'Fill the Feedback Form for Faculty',
+      description: 'All students must fill the online feedback form for all faculty members. The link has been shared on the class WhatsApp group. This is mandatory and will be tracked. Last date is strictly enforced.',
+      postedBy: 'Administrative Office', postedDate: '2026-03-20',
+      dueDate: '2026-03-22', status: 'pending'
+    },
+    // RECORD WORK
+    {
+      id: 9, type: 'record',
+      subject: 'CS3591', subjectName: 'Computer Networks Laboratory',
+      title: 'CS3591 — Computer Networks Lab Record',
+      description: 'Complete all experiments conducted so far in the CN lab. Write the aim, apparatus required, procedure, program, output and result for each experiment. The record must be submitted for evaluation.',
+      postedBy: 'Mr. V. Surendiren', postedDate: '2026-03-01',
+      dueDate: '2026-04-08', status: 'pending'
+    },
+    {
+      id: 10, type: 'record',
+      subject: 'AL3452', subjectName: 'Operating Systems Laboratory',
+      title: 'AL3452 — Operating Systems Lab Record',
+      description: 'Complete the OS lab record with all experiments. Include algorithm, program code, sample input/output and result for each experiment. Viva questions must also be answered at the end of each experiment.',
+      postedBy: 'Mrs. Kavitha', postedDate: '2026-03-01',
+      dueDate: '2026-04-08', status: 'pending'
+    },
+    {
+      id: 11, type: 'record',
+      subject: 'AD3461', subjectName: 'Machine Learning Laboratory',
+      title: 'AD3461 — Machine Learning Lab Record',
+      description: 'Submit completed ML lab record. Each experiment should include objective, dataset description, algorithm steps, Python code with comments, output screenshots and inference. Minimum 10 experiments required.',
+      postedBy: 'Mrs. S. Aswini', postedDate: '2026-03-01',
+      dueDate: '2026-04-10', status: 'submitted'
+    },
+    {
+      id: 12, type: 'record',
+      subject: 'AD3411', subjectName: 'Data Science and Analytics Laboratory',
+      title: 'AD3411 — Data Science Lab Record',
+      description: 'Complete DS lab record with all practical exercises. Include problem description, methodology, code, visualizations and conclusions for each exercise. The record will be evaluated during the lab internal assessment.',
+      postedBy: 'Mr. R. Vinoth Kumar', postedDate: '2026-03-01',
+      dueDate: '2026-04-10', status: 'pending'
+    },
+  ];
+
+  let currentFilter = 'all';
+  let expandedId = null;
+
+  function getDaysLeft(dueDate) {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const due = new Date(dueDate);
+    due.setHours(0,0,0,0);
+    return Math.round((due - today) / (1000 * 60 * 60 * 24));
+  }
+
+  function formatDate(d) {
+    return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function getStatusFromDays(days, status) {
+    if (status === 'submitted') return 'submitted';
+    if (days < 0) return 'overdue';
+    return 'pending';
+  }
+
+  function setFilter(f) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('ftab-' + f).classList.add('active');
+    expandedId = null;
+    render();
+  }
+
+  function toggleExpand(id) {
+    expandedId = expandedId === id ? null : id;
+    render();
+  }
+
+  function toggleSubmit(id, e) {
+    e.stopPropagation();
+    const a = assignments.find(x => x.id === id);
+    if (!a) return;
+    const days = getDaysLeft(a.dueDate);
+    const realStatus = getStatusFromDays(days, a.status);
+    if (realStatus === 'overdue' && a.status !== 'submitted') return;
+    a.status = a.status === 'submitted' ? 'pending' : 'submitted';
+    render();
+  }
+
+  function render() {
+    // Update counts
+    const all = assignments.map(a => ({ ...a, realStatus: getStatusFromDays(getDaysLeft(a.dueDate), a.status) }));
+    const counts = { all: all.length, pending: 0, submitted: 0, overdue: 0 };
+    all.forEach(a => { counts[a.realStatus]++; });
+    Object.keys(counts).forEach(k => {
+      const el = document.getElementById('fc-' + k);
+      if (el) el.textContent = counts[k];
+    });
+
+    // Stats mini
+    document.getElementById('stats-mini').innerHTML = `
+      <div class="stat-mini"><div class="stat-mini-val">${counts.all}</div><div class="stat-mini-lbl">Total</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${counts.pending}</div><div class="stat-mini-lbl">Pending</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${counts.submitted}</div><div class="stat-mini-lbl">Submitted</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${counts.overdue}</div><div class="stat-mini-lbl">Overdue</div></div>
+    `;
+
+    // Due tomorrow banner
+    const dueTomorrow = all.filter(a => getDaysLeft(a.dueDate) === 1 && a.status !== 'submitted');
+    const banner = document.getElementById('due-banner');
+    if (dueTomorrow.length > 0) {
+      banner.style.display = 'flex';
+      document.getElementById('due-banner-text').textContent =
+        dueTomorrow.length === 1
+          ? `"${dueTomorrow[0].title}" is due tomorrow!`
+          : `${dueTomorrow.length} assignments are due tomorrow!`;
+      document.getElementById('due-banner-sub').textContent =
+        dueTomorrow.map(a => a.subjectName).join(', ');
+    } else {
+      banner.style.display = 'none';
+    }
+
+    // Filter
+    const filtered = currentFilter === 'all'
+      ? all
+      : all.filter(a => a.realStatus === currentFilter);
+
+    // Group
+    const regular = filtered.filter(a => a.type === 'regular');
+    const general = filtered.filter(a => a.type === 'general');
+    const record = filtered.filter(a => a.type === 'record');
+
+    let html = '';
+
+    // Regular
+    html += `<div class="section-header">Regular Assignments</div>`;
+    if (regular.length === 0) {
+      html += `<div class="empty-section">No regular assignments in this category.</div>`;
+    } else {
+      regular.forEach(a => { html += renderRow(a); });
+    }
+
+    // General
+    html += `<div class="section-header general-header">General Assignments</div>`;
+    if (general.length === 0) {
+      html += `<div class="empty-section">No general assignments in this category.</div>`;
+    } else {
+      general.forEach(a => { html += renderRow(a); });
+    }
+
+    // Record
+    html += `<div class="section-header record-header">Record Work</div>`;
+    if (record.length === 0) {
+      html += `<div class="empty-section">No record submissions in this category.</div>`;
+    } else {
+      record.forEach(a => { html += renderRow(a); });
+    }
+
+    document.getElementById('assignments-container').innerHTML = html;
+  }
+
+  function renderRow(a) {
+    const days = getDaysLeft(a.dueDate);
+    const realStatus = getStatusFromDays(days, a.status);
+    const isExpanded = expandedId === a.id;
+
+    let daysText = '';
+    let daysClass = 'normal';
+    if (realStatus === 'submitted') {
+      daysText = 'Submitted';
+    } else if (realStatus === 'overdue') {
+      daysText = `${Math.abs(days)} days overdue`;
+      daysClass = 'overdue';
+    } else if (days === 0) {
+      daysText = 'Due today!';
+      daysClass = 'urgent';
+    } else if (days === 1) {
+      daysText = 'Due tomorrow!';
+      daysClass = 'urgent';
+    } else {
+      daysText = `${days} days left`;
+      daysClass = days <= 3 ? 'urgent' : 'normal';
+    }
+
+    let pillHtml = '';
+    if (a.type === 'record') {
+      pillHtml = `<div class="record-pill">RECORD</div>`;
+    } else if (a.type === 'general') {
+      pillHtml = `<div class="general-pill">GENERAL</div>`;
+    } else {
+      pillHtml = `<div class="subject-pill">${a.subject}</div>`;
+    }
+
+    let badgeHtml = '';
+    if (realStatus === 'submitted') badgeHtml = `<span class="status-badge badge-submitted">SUBMITTED</span>`;
+    else if (realStatus === 'overdue') badgeHtml = `<span class="status-badge badge-overdue">OVERDUE</span>`;
+    else badgeHtml = `<span class="status-badge badge-pending">PENDING</span>`;
+
+    const dueTomorrowBadge = days === 1 && realStatus !== 'submitted'
+      ? `<span class="due-tomorrow-badge">DUE TOMORROW</span>` : '';
+
+    const submitBtnHtml = realStatus !== 'overdue'
+      ? `<button class="submit-btn ${realStatus === 'submitted' ? 'unsubmit' : ''}"
+           onclick="toggleSubmit(${a.id}, event)">
+           ${realStatus === 'submitted' ? 'Undo' : 'Mark Done'}
+         </button>` : '';
+
+    return `
+      <div class="assignment-row ${realStatus} ${a.type}">
+        <div class="assignment-main" onclick="toggleExpand(${a.id})">
+          ${pillHtml}
+          <div class="assignment-info">
+            <div class="assignment-title">${a.title} ${dueTomorrowBadge}</div>
+            <div class="assignment-subject">${a.subjectName} &nbsp;·&nbsp; Posted by ${a.postedBy}</div>
+          </div>
+          <div class="assignment-right">
+            <div class="due-date">
+              <div>${formatDate(a.dueDate)}</div>
+              <div class="days-left ${daysClass}">${daysText}</div>
+            </div>
+            ${badgeHtml}
+            ${submitBtnHtml}
+            <svg class="chevron ${isExpanded ? 'open' : ''}" width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9 L12 15 L18 9" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="assignment-expand ${isExpanded ? 'open' : ''}">
+          <div class="expand-content">
+            ${a.description}
+            <div class="expand-meta">
+              <div class="expand-meta-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="1.5"/></svg>
+                Posted: ${formatDate(a.postedDate)}
+              </div>
+              <div class="expand-meta-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20 Q4 14 12 14 Q20 14 20 20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                ${a.postedBy}
+              </div>
+              <div class="expand-meta-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 7 L12 12 L16 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                Due: ${formatDate(a.dueDate)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  render();
+</script>
+
+{% endblock %}
+
+{% block extra_js %}{% endblock %}
+
+
+
