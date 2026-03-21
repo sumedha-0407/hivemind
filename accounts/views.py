@@ -43,3 +43,9 @@ def leave_view(request):
 
 def notice_view(request):
     return render(request, 'accounts/notice.html')
+
+def study_materials_view(request):
+    return render(request, 'accounts/study_materials.html')
+
+def subject_materials_view(request, code):
+    return render(request, 'accounts/subject_materials.html', {'code': code})

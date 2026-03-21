@@ -8,5 +8,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('leave/', views.leave_view, name='leave'),
     path('notice/', views.notice_view, name='notice'),
+    path('study-materials/', views.study_materials_view, name='study_materials'),
+    path('study-materials/<str:code>/', views.subject_materials_view, name='subject_materials'),
 ]
 

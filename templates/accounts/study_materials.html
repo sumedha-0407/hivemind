@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+
+{% block title %}HIVEMIND - Study Materials{% endblock %}
+
+{% block background %}{% endblock background %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700&display=swap');
+  * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+  body {
+    background: linear-gradient(90deg, hsla(221, 55%, 45%, 1) 0%, hsla(220, 78%, 18%, 1) 100%);
+    min-height: 100vh;
+  }
+  .dash-wrap { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column;
+    padding: 24px 0; position: fixed;
+    height: 100vh; z-index: 10;
+  }
+  .sidebar-logo {
+    font-family: 'Righteous', cursive;
+    font-size: 20px; color: white;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 16px;
+  }
+  .sidebar-logo span {
+    font-size: 10px; color: rgba(255,255,255,0.4);
+    display: block; font-family: 'Nunito', sans-serif;
+    font-weight: 400; letter-spacing: 1px; margin-top: 2px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; font-size: 13px;
+    color: rgba(255,255,255,0.55); cursor: pointer;
+    transition: all 0.2s; text-decoration: none;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: white; text-decoration: none; }
+  .nav-item.active { background: rgba(104,137,238,0.15); color: #9bafd9; border-left-color: #6889ee; }
+  .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+  .sidebar-footer {
+    margin-top: auto; padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .logout-btn {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: rgba(255,255,255,0.4);
+    text-decoration: none; transition: all 0.2s;
+  }
+  .logout-btn:hover { color: #ff6b6b; text-decoration: none; }
+
+  /* MAIN */
+  .main-area { margin-left: 220px; flex: 1; padding: 28px 32px; }
+
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .page-title { font-size: 24px; font-weight: 700; color: white; margin: 0; }
+  .page-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin: 4px 0 0; }
+
+  /* SEARCH */
+  .search-wrap {
+    position: relative; width: 260px;
+  }
+  .search-input {
+    width: 100%; padding: 9px 14px 9px 36px;
+    border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.07); color: white;
+    font-size: 13px; font-family: 'Nunito', sans-serif; outline: none;
+    transition: all 0.2s;
+  }
+  .search-input:focus { border-color: rgba(104,137,238,0.4); background: rgba(255,255,255,0.1); }
+  .search-input::placeholder { color: rgba(255,255,255,0.3); }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); opacity: 0.4; }
+
+  /* CARDS GRID */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  /* SUBJECT CARD */
+  .subject-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-left: 3px solid rgba(104,137,238,0.5);
+    border-radius: 16px; padding: 0;
+    cursor: pointer; transition: all 0.25s;
+    text-decoration: none; display: flex; flex-direction: column;
+    overflow: hidden; position: relative;
+  }
+  .subject-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(104,137,238,0.4);
+    box-shadow: 0 8px 24px rgba(0,0,30,0.3);
+    text-decoration: none;
+  }
+
+  .card-body { padding: 18px 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+  .card-code {
+    font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5);
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .card-name {
+    font-size: 15px; font-weight: 700; color: white; line-height: 1.35;
+  }
+  .card-faculty {
+    font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.4;
+    margin-top: 2px;
+  }
+  .card-dept {
+    font-size: 10px; color: rgba(255,255,255,0.3);
+  }
+
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    margin-top: auto;
+  }
+  .card-count { font-size: 11px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 5px; }
+  .new-badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    background: rgba(104,137,238,0.3); color: #9bafd9;
+    border: 1px solid rgba(104,137,238,0.4);
+    border-radius: 6px; padding: 2px 7px;
+  }
+  .card-arrow {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .subject-card:hover .card-arrow { background: rgba(104,137,238,0.3); }
+
+  /* LAB CARD SPECIAL */
+  .lab-card { grid-column: span 2; }
+  .lab-card .card-name { font-size: 16px; }
+  .lab-files {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;
+  }
+  .lab-file-pill {
+    font-size: 10px; color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; padding: 3px 10px;
+    display: flex; align-items: center; gap: 4px;
+  }
+</style>
+
+<div class="dash-wrap">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      HIVEMIND
+      <span>Academic Platform</span>
+    </div>
+    <a href="{% url 'dashboard' %}" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+      Dashboard
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 12 L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12 12 L16 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Attendance
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="1" width="8" height="5" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="11" x2="18" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="6" y1="15" x2="18" y2="15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Assignments
+    </a>
+    <a href="{% url 'study_materials' %}" class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="7" x2="17" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="7" y1="11" x2="17" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="2" y1="1" x2="2" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Study Materials
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11 L7 7 Q7 3 12 3 Q17 3 17 7 L17 11" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="12" cy="17" r="2" stroke="currentColor" stroke-width="1.2"/></svg>
+      DigiLocker
+    </a>
+    <a href="{% url 'leave' %}" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="1" x2="8" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="1" x2="16" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 14 L10 17 L17 13" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Leave Portal
+    </a>
+    <a href="{% url 'notice' %}" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2 C8 2 6 6 6 10 L6 16 L3 19 L21 19 L18 16 L18 10 C18 6 16 2 12 2 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="3" y1="19" x2="21" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 19 Q9 22 12 22 Q15 22 15 19" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      Notice Board
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><path d="M3 4 Q3 2 5 2 L19 2 Q21 2 21 4 L21 15 Q21 17 19 17 L8 17 L3 21 L3 4 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="7" y1="7" x2="17" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="7" y1="11" x2="13" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Discussions
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20 Q4 14 12 14 Q20 14 20 20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      Profile
+    </a>
+    <div class="sidebar-footer">
+      <a href="{% url 'logout' %}" class="logout-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21 L3 21 L3 3 L9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 17 L21 12 L16 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Logout
+      </a>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Study Materials</div>
+        <div class="page-sub">Access lecture notes, slides and resources for all your subjects</div>
+      </div>
+      <div class="search-wrap">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="white" stroke-width="1.5"/><path d="M16 16 L21 21" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input type="text" class="search-input" placeholder="Search subjects..." oninput="filterCards(this.value)"/>
+      </div>
+    </div>
+
+    <div class="cards-grid" id="cards-grid">
+
+      <!-- CN -->
+      <a href="{% url 'subject_materials' 'CS3591' %}" class="subject-card" data-name="computer networks">
+        <div class="card-body">
+          <div class="card-code">CS3591</div>
+          <div class="card-name">Computer Networks</div>
+          <div class="card-faculty">Mr. V. Surendiren</div>
+          <div class="card-dept">AP / AI&DS</div>
+        </div>
+        <div class="card-footer">
+          <div class="card-count">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+            8 files
+          </div>
+          <span class="new-badge">NEW</span>
+        </div>
+      </a>
+
+      <!-- ML -->
+      <a href="{% url 'subject_materials' 'AD3451' %}" class="subject-card" data-name="machine learning">
+        <div class="card-body">
+          <div class="card-code">AD3451</div>
+          <div class="card-name">Machine Learning</div>
+          <div class="card-faculty">Mrs. S. Aswini</div>
+          <div class="card-dept">AP / AI&DS</div>
+        </div>
+        <div class="card-footer">
+          <div class="card-count">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+            12 files
+          </div>
+        </div>
+      </a>
+
+      <!-- OS -->
+      <a href="{% url 'subject_materials' 'AL3452' %}" class="subject-card" data-name="operating systems">
+
+        <div class="card-body">
+          <div class="card-code">AL3452</div>
+          <div class="card-name">Operating Systems</div>
+          <div class="card-faculty">Mrs. Kavitha</div>
+          <div class="card-dept">AP / AI&DS</div>
+        </div>
+        <div class="card-footer">
+          <div class="card-count">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+            6 files
+          </div>
+          <span class="new-badge">NEW</span>
+        </div>
+      </a>
+
+      <!-- FDS -->
+      <a href="{% url 'subject_materials' 'AD3491' %}" class="subject-card" data-name="fundamentals of data science">
+        <div class="card-body">
+          <div class="card-code">AD3491</div>
+          <div class="card-name">Fundamentals of Data Science</div>
+          <div class="card-faculty">Mr. R. Vinoth Kumar</div>
+          <div class="card-dept">AP / AI&DS</div>
+        </div>
+        <div class="card-footer">
+          <div class="card-count">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+            9 files
+          </div>
+        </div>
+      </a>
+
+      <!-- PS -->
+      <a href="{% url 'subject_materials' 'MA3391' %}" class="subject-card" data-name="probability and statistics">
+        <div class="card-body">
+          <div class="card-code">MA3391</div>
+          <div class="card-name">Probability & Statistics</div>
+          <div class="card-faculty">Mr. N. Thirumoorthy</div>
+          <div class="card-dept">AP / MATHS</div>
+        </div>
+        <div class="card-footer">
+          <div class="card-count">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+            7 files
+          </div>
+        </div>
+      </a>
+
+      <!-- ESS -->
+      <a href="{% url 'subject_materials' 'GE3451' %}" class="subject-card" data-name="environmental science and sustainability">
+        <div class="card-body">
+          <div class="card-code">GE3451</div>
+          <div class="card-name">Environmental Science and Sustainability</div>
+          <div class="card-faculty">Ms. Archana</div>
+          <div class="card-dept">AP / MBA</div>
+        </div>
+        <div class="card-footer">
+          <div class="card-count">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+            5 files
+          </div>
+        </div>
+      </a>
+
+      <!-- LAB MANUALS -->
+      <a href="{% url 'subject_materials' 'LAB' %}" class="subject-card lab-card" data-name="lab manual laboratory">
+        <div class="card-body">
+          <div class="card-code">Lab Manuals</div>
+          <div class="card-name">Laboratory Manuals</div>
+          <div class="card-faculty">All Lab Subjects</div>
+          <div class="lab-files">
+            <span class="lab-file-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+              CS3591 — CN Lab
+            </span>
+            <span class="lab-file-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+              AL3452 — OS Lab
+            </span>
+            <span class="lab-file-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+              AD3461 — ML Lab
+            </span>
+            <span class="lab-file-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+              AD3411 — DS Lab
+            </span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-count">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 3 Q2 1 4 1 L20 1 Q22 1 22 3 L22 21 Q22 23 20 23 L4 23 Q2 23 2 21 Z" stroke="currentColor" stroke-width="1.5"/></svg>
+            4 manuals
+          </div>
+          <span class="new-badge">NEW</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function filterCards(val) {
+    const cards = document.querySelectorAll('.subject-card');
+    cards.forEach(card => {
+      const name = card.getAttribute('data-name');
+      card.style.display = name.includes(val.toLowerCase()) ? '' : 'none';
+    });
+  }
+</script>
+
+{% endblock %}
+
+{% block extra_js %}{% endblock %}
