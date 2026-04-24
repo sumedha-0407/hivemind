@@ -12,5 +12,8 @@ urlpatterns = [
     path('study-materials/<str:code>/', views.subject_materials_view, name='subject_materials'),
     path('assignments/', views.assignments_view, name='assignments'),
     path('digilocker/', views.digilocker_view, name='digilocker'),
+    path('discussions/', views.discussions_view, name='discussions'),
+    path('attendance/', views.attendance_view, name='attendance'),
+    path('profile/', views.profile_view, name='profile'),
     ]
 

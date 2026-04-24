@@ -55,3 +55,12 @@ def assignments_view(request):
 
 def digilocker_view(request):
     return render(request, 'accounts/digilocker.html')
+
+def discussions_view(request):
+    return render(request, 'accounts/discussion.html')
+
+def attendance_view(request):
+    return render(request, 'accounts/attendance.html')
+
+def profile_view(request):
+    return render(request, 'accounts/profile.html')
